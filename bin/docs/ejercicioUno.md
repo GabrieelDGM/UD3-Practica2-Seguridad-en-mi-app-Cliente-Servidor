@@ -1,21 +1,20 @@
 # Ejercicio Uno.
+##  Escaneo de tráfico con Wireshark SIN CIFRADO
+### Objetivo
+Demostrar que sin cifrado, cualquier persona que esté escuchando la red puede leer los mensajes del debate sin ningún problema.
+### Pasos realizados
 
-## ¿Qué se hizo?
-Se creó la clase ServidorDebate.java con la estructura básica de un servidor TCP. En este primer paso, el servidor solo abre un puerto y acepta una conexión de un cliente, sin hilos ni temporizador.
+-Se arrancó la aplicación de debate de la Práctica 1 (sin cifrado).
+-Se abrió Wireshark y se seleccionó la interfaz de red Loopback (lo) para capturar el tráfico local.
+-Se aplicó el filtro tcp.port == 5000 para ver solo el tráfico de nuestra aplicación.
+-Se conectaron dos clientes y se enviaron mensajes de prueba.
+-Se capturaron los paquetes y se inspeccionó su contenido.
 
-## Pasos realizados
-    • Se importaron las librerías java.net y java.io.
-    • Se definió el puerto 5000 como constante.
-    • Se creó un ArrayList con los temas del debate.
-    • Se usó ServerSocket para abrir el servidor.
-    • Se llamó a serverSocket.accept() para esperar al primer cliente.
+### Filtro usado en Wireshark
+tcp.port == 5000
 
-## Fragmento clave
-
-`ServerSocket serverSocket = new ServerSocket(PUERTO);`
-`Socket socketCliente = serverSocket.accept();`
-
-## Clase principal
-ServidorDebate.java — ubicada en src/servidor/
+###  Resultado
+En la captura de Wireshark se puede ver claramente el contenido de los mensajes en texto plano.
+![IMAGEN](../img/EjercicioUno.png)
 
 [Volver al README](../../README.md)
