@@ -1,11 +1,9 @@
 package servidor;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.Socket;
+
+import java.io.*;
+import java.net.*;
 import java.util.List;
+import seguridad.CifradoAES;
 
 public class HiloCliente extends Thread {
 
@@ -22,42 +20,58 @@ public class HiloCliente extends Thread {
     @Override
     public void run() {
         try {
-
             BufferedReader entrada = new BufferedReader(
-                    new InputStreamReader(socket.getInputStream()));
+                new InputStreamReader(socket.getInputStream())
+            );
             salida = new PrintWriter(
-                    new OutputStreamWriter(socket.getOutputStream()), true);
+                new OutputStreamWriter(socket.getOutputStream()), true
+            );
 
-            nombre = entrada.readLine();
+            
+            String nombreEncriptado = entrada.readLine();
+            nombre = CifradoAES.desencriptar(nombreEncriptado);
+
             System.out.println("[Servidor] " + nombre + " se ha unido al debate.");
-            enviarATodos("" + nombre + " se ha unido al debate.");
+            enviarATodos(encriptar(">>> " + nombre + " se ha unido al debate."));
 
-            String mensaje;
-            while ((mensaje = entrada.readLine()) != null) {
+          
+            String mensajeEncriptado;
+            while ((mensajeEncriptado = entrada.readLine()) != null) {
+                String mensaje = CifradoAES.desencriptar(mensajeEncriptado);
                 if (mensaje.equalsIgnoreCase("salir")) {
                     break;
                 }
                 System.out.println("[" + nombre + "]: " + mensaje);
-                enviarATodos("[" + nombre + "]: " + mensaje);
+                enviarATodos(encriptar("[" + nombre + "]: " + mensaje));
             }
 
         } catch (IOException e) {
             System.out.println("[Servidor] " + nombre + " se desconectó inesperadamente.");
+        } catch (Exception e) {
+            System.out.println("[Servidor] Error de cifrado: " + e.getMessage());
         } finally {
-
             listaClientes.remove(this);
-            enviarATodos("" + nombre + " ha salido del debate.");
             try {
+                enviarATodos(encriptar(">>> " + nombre + " ha salido del debate."));
                 socket.close();
-            } catch (IOException e) {
-
+            } catch (Exception e) {
+                
             }
         }
     }
 
-    public void enviarATodos(String mensaje) {
+    
+    private String encriptar(String mensaje) {
+        try {
+            return CifradoAES.encriptar(mensaje);
+        } catch (Exception e) {
+            return mensaje;
+        }
+    }
+
+    public void enviarATodos(String mensajeEncriptado) {
         for (HiloCliente cliente : listaClientes) {
-            cliente.enviarMensaje(mensaje);
+            cliente.enviarMensaje(mensajeEncriptado);
         }
     }
 

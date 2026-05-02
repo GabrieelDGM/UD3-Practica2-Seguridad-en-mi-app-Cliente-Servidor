@@ -1,41 +1,40 @@
 package servidor;
 
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.io.*;
+import java.net.*;
+import java.util.*;
+import seguridad.CifradoAES;
 
 public class ServidorDebate {
 
     private static final int PUERTO = 5000;
-    private static final int TIEMPO_DEBATE = 100;
+    private static final int TIEMPO_DEBATE = 60;
 
     private static ArrayList<String> temas = new ArrayList<>(Arrays.asList(
-        "¿Qué selección ganará el Mundial 2026?",
-        "¿Qué es para ti la libertad?",
-        "¿Qué equipo es mejor, el Barcelona o el Real Madrid?",
-        "¿Qué opinas de la guerra?"
+        "¿Debería reducirse la semana laboral a 4 días?",
+        "¿Es la inteligencia artificial una amenaza para el empleo?",
+        "¿Deberían los videojuegos considerarse un deporte?",
+        "¿Es mejor vivir en el campo o en la ciudad?",
+        "¿Debería ser obligatorio el servicio militar?",
+        "¿Las redes sociales hacen más daño que bien?",
+        "¿Debería prohibirse el uso del móvil en los institutos?"
     ));
+
     private static List<HiloCliente> clientes = Collections.synchronizedList(new ArrayList<>());
 
     public static void main(String[] args) throws IOException {
 
-        // Escoger tema al azar
         Random random = new Random();
         String temaElegido = temas.get(random.nextInt(temas.size()));
 
-        System.out.println("!SERVIDOR DE DEBATE!");
-        System.out.println("Tema del debate: " + temaElegido);
+        System.out.println("=== SERVIDOR DE DEBATE (AES activado) ===");
+        System.out.println("Tema: " + temaElegido);
         System.out.println("Duración: " + TIEMPO_DEBATE + " segundos");
         System.out.println("Esperando conexiones en el puerto " + PUERTO + "...\n");
 
         ServerSocket serverSocket = new ServerSocket(PUERTO);
 
+        // Hilo temporizador
         Thread temporizador = new Thread(() -> {
             try {
                 Thread.sleep(TIEMPO_DEBATE * 1000L);
@@ -43,7 +42,7 @@ public class ServidorDebate {
                 avisarFinDebate();
                 serverSocket.close();
             } catch (InterruptedException | IOException e) {
-
+                // Cierre normal
             }
         });
         temporizador.setDaemon(true);
@@ -52,22 +51,20 @@ public class ServidorDebate {
         try {
             while (true) {
                 Socket socketCliente = serverSocket.accept();
-
                 HiloCliente hilo = new HiloCliente(socketCliente, clientes);
                 clientes.add(hilo);
+                hilo.start();
 
-                
-                hilo.start(); 
+                Thread.sleep(200);
 
-                Thread.sleep(500);
-                hilo.enviarMensaje("(= BIENVENIDO AL DEBATE =)");
-                hilo.enviarMensaje("Tema: " + temaElegido);
-                hilo.enviarMensaje("Tienes " + TIEMPO_DEBATE + " segundos para debatir.");
-                hilo.enviarMensaje("Escribe 'salir' para desconectarte.");
-                hilo.enviarMensaje("-------------------------------------------");
+            
+                hilo.enviarMensaje(encriptar("=== BIENVENIDO AL DEBATE  ==="));
+                hilo.enviarMensaje(encriptar("Tema: " + temaElegido));
+                hilo.enviarMensaje(encriptar("Tienes " + TIEMPO_DEBATE + " segundos para debatir."));
+                hilo.enviarMensaje(encriptar("Escribe 'salir' para desconectarte."));
+                hilo.enviarMensaje(encriptar("-------------------------------------------"));
             }
         } catch (SocketException e) {
-            
             System.out.println("[Servidor] Servidor cerrado correctamente.");
         } catch (InterruptedException e) {
             System.out.println("[Servidor] Interrumpido.");
@@ -79,9 +76,17 @@ public class ServidorDebate {
     private static void avisarFinDebate() {
         synchronized (clientes) {
             for (HiloCliente cliente : clientes) {
-                cliente.enviarMensaje("-------------------------------------------");
-                cliente.enviarMensaje("¡El debate ha finalizado! Gracias por participar.");
+                cliente.enviarMensaje(encriptar("-------------------------------------------"));
+                cliente.enviarMensaje(encriptar("¡El debate ha finalizado! Gracias por participar."));
             }
+        }
+    }
+
+    private static String encriptar(String mensaje) {
+        try {
+            return CifradoAES.encriptar(mensaje);
+        } catch (Exception e) {
+            return mensaje;
         }
     }
 }
