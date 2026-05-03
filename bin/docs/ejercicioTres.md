@@ -1,26 +1,48 @@
-# Ejercicio 3 – Cliente de debate
-## ¿Qué se hizo?
-Se creó la clase ClienteDebate.java. El cliente se conecta al servidor, envía su nombre, y a partir de ahí puede escribir mensajes. Para poder recibir mensajes de otros participantes mientras escribe, se usa un hilo secundario que escucha el socket en segundo plano.
+# Ejercicio 3
+## Modificación del cliente y servidor para usar cifrado
 
-## Pasos realizados
-    • Se creó un Socket hacia localhost:5000.
-    • Se crearon los flujos BufferedReader y PrintWriter.
-    • Se envió el nombre del usuario al servidor.
-    • Se creó un hilo receptor (setDaemon(true)) para leer mensajes entrantes.
-    • El hilo principal lee el teclado y envía mensajes al servidor.
+## Objetivo
+Integrar la clase CifradoAES en el cliente y el servidor para que toda la información que viaja por el socket esté cifrada.
 
-## Fragmento clave
-Thread receptor = new Thread(() -> {
-    String msg;
-    while ((msg = entrada.readLine()) != null) {
-        System.out.println(msg);
+## Cambios en el servidor - ServidorDebate.java
+Se añadió un método privado encriptar() que cifra los mensajes antes de enviarlos a los clientes:
+javaprivate static String encriptar(String mensaje) {
+    try {
+        return CifradoAES.encriptar(mensaje);
+    } catch (Exception e) {
+        return mensaje;
     }
-});
-receptor.setDaemon(true);
-receptor.start();
+}
+Todos los mensajes del servidor (bienvenida, tema, fin de debate) ahora se envían cifrados:
+javahilo.enviarMensaje(encriptar("=== BIENVENIDO AL DEBATE (conexión segura AES) ==="));
+hilo.enviarMensaje(encriptar("Tema: " + temaElegido));
 
-## Clase principal
-ClienteDebate.java — ubicada en src/cliente/
+## Cambios en HiloCliente.java
+El nombre del cliente llega cifrado y se descifra al recibirlo:
+javaString nombreEncriptado = entrada.readLine();
+nombre = CifradoAES.desencriptar(nombreEncriptado);
+Los mensajes de los participantes también llegan cifrados y se descifran antes de retransmitirlos:
+javaString mensaje = CifradoAES.desencriptar(mensajeEncriptado);
+enviarATodos(encriptar("[" + nombre + "]: " + mensaje));
+
+## Cambios en el cliente - ClienteDebate.java
+
+El nombre se envía cifrado al servidor:
+javasalida.println(CifradoAES.encriptar(nombre));
+Los mensajes escritos por el usuario se cifran antes de enviarlos:
+javasalida.println(CifradoAES.encriptar(linea));
+Los mensajes recibidos del servidor se descifran antes de mostrarlos por pantalla:
+javaString mensajeDescifrado = CifradoAES.desencriptar(mensajeEncriptado);
+System.out.println(mensajeDescifrado);
+
+## Resumen del flujo completo
+Cliente escribe mensaje
+    → se cifra con AES
+    → se envía por el socket (ilegible en la red)
+    → el servidor lo recibe y descifra
+    → el servidor lo vuelve a cifrar
+    → lo envía a todos los clientes
+    → cada cliente lo descifra y lo muestra por pantalla
 
 
 [Volver al README](../../README.md)
