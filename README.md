@@ -4,40 +4,53 @@
 [EjercicioUno](src/docs/ejercicioUno.md)
 [EjercicioDos](src/docs/ejercicioDos.md)
 [EjercicioTres](src/docs/ejercicioTres.md)
-[Tiempo](src/docs/tiempo.md)
-[Funcionalidad](src/docs/funcionalidad.md)
+[EjercicioCuatro](src/docs/ejercicioCuatro.md)
+[EjercicioCinco](src/docs/ejercicioCinco.md)
+
 
 ## Descripción
-Esta aplicación permite que varios usuarios debatan en tiempo real sobre un tema elegido al azar por el servidor. El debate tiene una duración fija de 1 minuto, tras el cual el servidor cierra automáticamente todas las conexiones.
-Está desarrollada en Java, usando sockets para la comunicación en red e hilos para gestionar varios clientes a la vez.
+Esta práctica amplía la aplicación de debate de la Práctica 1 añadiendo cifrado AES a todas las comunicaciones entre el cliente y el servidor. El objetivo es proteger la información transmitida para que no pueda ser interceptada y leída por terceros, usando cifrado simétrico de 128 bits.
 
 ## 📁 Estructura del proyecto
-![Estructura](src/img/estructura.png)
+![Estructura](image.png)
 
-## ⚙️ Funcionamiento de la APP
+## ⚙️ ¿Qué se ha añadido respecto a la Práctica 1?
+Se ha creado una nueva clase CifradoAES.java con dos métodos principales:
 
-![Funcionamiento](src/img/funcionamiento.png)
+encriptar() → cifra el mensaje antes de enviarlo por el socket.
+desencriptar() → descifra el mensaje al recibirlo.
 
+Tanto el cliente como el servidor usan esta clase para que toda la información que viaja por la red esté cifrada y sea ilegible para cualquier persona que intente interceptarla.
+
+## ¿Cómo funciona el cifrado?
+Cliente escribe mensaje
+    → se cifra con AES
+    → viaja por el socket (ilegible en la red)
+    → el servidor lo recibe y descifra
+    → el servidor lo vuelve a cifrar
+    → lo envía a todos los clientes
+    → cada cliente lo descifra y lo muestra por pantalla
 ## Roles de cliente y servidor
-Roles del cliente y del servidor
-## Servidor
+Servidor
 
 Abre el puerto y espera conexiones.
 Elige el tema del debate al azar.
 Crea un hilo por cada cliente que se conecta.
-Retransmite los mensajes de un cliente a todos los demás.
+Retransmite los mensajes cifrados a todos los demás.
 Gestiona el temporizador y cierra el debate al finalizar.
 
-## Cliente
+Cliente
 
 Se conecta al servidor con un nombre de usuario.
-Recibe el tema y los mensajes de otros participantes.
-Envía mensajes al debate que todos pueden leer.
+Envía todos los mensajes cifrados con AES.
+Recibe los mensajes cifrados y los descifra antes de mostrarlos.
 Puede desconectarse voluntariamente escribiendo salir.
 
-## Liberias utilizadas para la APP
 
-![Librerias](src/img/liberias.png)
+
+## Librerías utilizadas para el cifrado
+
+ClasePaquetePara qué se usaCipherjavax.cryptoRealiza el cifrado y descifrado AESSecretKeyjavax.cryptoRepresenta la clave secretaSecretKeySpecjavax.crypto.specCrea la clave a partir del textoBase64java.utilConvierte los bytes cifrados a texto para enviarlos por el socket
 
 
 ## Control de Excepciones
@@ -64,4 +77,3 @@ El cliente y el servidor deben estar en la misma red para conectarse. Si quieres
 # Aplicacion creada por:
 ### Gabriel David Gelviz Monterrey
 
-[Video](https://drive.google.com/file/d/14oj6piJIInfnucxJfxx--YRGSXW6qnEK/view?usp=drive_link)
