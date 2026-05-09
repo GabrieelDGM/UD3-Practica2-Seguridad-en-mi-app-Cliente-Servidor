@@ -12,7 +12,7 @@
 Esta práctica amplía la aplicación de debate de la Práctica 1 añadiendo cifrado AES a todas las comunicaciones entre el cliente y el servidor. El objetivo es proteger la información transmitida para que no pueda ser interceptada y leída por terceros, usando cifrado simétrico de 128 bits.
 
 ## 📁 Estructura del proyecto
-![Estructura](image.png)
+![Estructura](src/img/image.png)
 
 ## ⚙️ ¿Qué se ha añadido respecto a la Práctica 1?
 Se ha creado una nueva clase CifradoAES.java con dos métodos principales:
